@@ -1,0 +1,7 @@
+#!/bin/sh
+go run main.go & 
+while inotifywait -e modify ./* --recursive ; do
+    go run main.go &
+#     clear
+#     echo "reload"
+done

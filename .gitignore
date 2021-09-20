@@ -1,0 +1,11 @@
+/api/tmp/
+/api/gin-bin
+/api/go.mod
+/api/run
+/go-web/tmp/
+/go-web/gin-bin
+/go-web/go.mod
+/go-web/go.sum
+/go-web/run
+/go-web/yser/yaml
+

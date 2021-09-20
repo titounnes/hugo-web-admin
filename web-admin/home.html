@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Selamat Datang di Aplikasi Sistem Akademik | Sistem Informasi Akademik w akakak | eraport.e-project-tech.com</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="theme">
+        <meta content='id' name='language' />
+        <meta content='id' name='geo.country' />
+        <meta content='Indonesia' name='geo.placename' />
+        <meta name="author" content="Harjito, Harjito@example.com">
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="apple-mobile-web-app-title" content="e-Project">
+        <meta name="msapplication-TileImage" content="favicon.ico">
+        <meta name="msapplication-TileColor" content="#2F3BA2">
+        <link rel="shortcut icon" type="image/png" href="/favicon.ico" />
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+        <style>
+            #title, #button-group{
+                height:10vh;
+            }
+            #preview, #body, article{
+                height: 40vh;
+                max-height: 40vh;
+                width:100%;
+            }
+            #preview{
+                overflow-y: auto;
+            }
+            #content{
+                height: 80%;
+                overflow-y: auto;
+            }
+            .btn{
+                margin-top:10px;
+            }
+            #content-html h1, #content-html h2, #content-html h2, #content-html h4, #content-html h5, #content-html p, #content-html li {
+                font-size:16px;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.8.0/showdown.min.js"></script>
+        <script src="/script.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <h3 class="text-center">{{.Title}}</h3>
+            <h4 class="text-center">Simple and Usefull</h4>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-9">
+                    <div id="preview">
+                        <h3 id="title-html" class="text-center"></h3>
+                        <h4 id="author-html" class="text-center"></h4>
+                        <div id="content-html" style="text-align:justify"></div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="col-sm">
+                        <div id="files">
+                            Hasil di sini    
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-9">
+                    <div id="editor">
+                        <input type="text" id="title" class="form-control" placeholder="title">&nbsp;
+                        <input type="text" id="description" class="form-control" placeholder="descriptiom" readOnly>&nbsp;
+                        <textarea id="body" class="form-control" placeholder="content"></textarea>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <input type="text" id="tags" class="form-control" placeholder="Tags, separate by semocolon">&nbsp;
+                    <input type="text" id="categories" class="form-control" placeholder="categories">&nbsp;
+                    <button class="btn btn-primary" onclick="save(true)"><i class="fa fa-save"></i> </i>Save as Draft</button>
+                    <button class="btn btn-primary" onclick="save(false)"><i class="fa fa-save"></i> </i>Save and Publish</button>
+                </div>
+            </div>
+        </div>
+        <script>
+            var activeFile, activeText, converter = new showdown.Converter();
+                    
+
+            function ajax(method, controller, data, callback){
+                const xmlhttp = new XMLHttpRequest();
+                xmlhttp.open(method, ["http://localhost:8081",controller].join('/'), true);
+                // xmlhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+                xmlhttp.setRequestHeader("Content-Type", "application/json");
+                // xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+                xmlhttp.send(JSON.stringify(data));
+                xmlhttp.onload = callback;
+            }
+
+            function browse(){
+                ajax('get', 'articles', {}, showFile)
+            }
+
+            function showFile(){
+                localStorage['files'] = this.response;
+                const fileContainer = document.getElementById('files')
+                var html = ['Daftar Artikel<ul class="nav nav-link">']
+                for(var file of JSON.parse(this.response).files){
+                    html.push('<li><a href="#" class="file-anchor" data="'+file+'" onclick="chooseFile(\''+file+'\');" >'+file+'</a></li>')
+                }
+                html.push('</ul>')
+                fileContainer.innerHTML = html.join('');
+            }
+
+            function chooseFile(name){
+                activeFile = name;
+                ajax('get', 'article/'+activeFile.replace('.md',''), {}, openFile)
+            }
+
+            const title = document.getElementById('title')
+            const description = document.getElementById('description')
+            const content = document.getElementById('body')
+            const tags = document.getElementById('tags')
+            const categories = document.getElementById('categories')
+            
+            const titleHtml = document.getElementById('title-html')
+            const authorHtml = document.getElementById('author-html')
+
+
+            content.addEventListener('keydown', function(e){
+                var cursorPosition = this.selectionStart;
+                switch(e.key){
+                    case 'Tab' :
+                        e.preventDefault(); 
+                        this.value = insert(this.value, '     ', cursorPosition);
+                        this.selectionEnd = cursorPosition+4;
+                        this.focus();
+                        break;
+                 
+                }
+                // console.log(cursorPosition)
+                // console.log(e.key)
+                // document.getElementById('content-html').innerHTML = converter.makeHtml(this.value);
+            })
+            
+            content.addEventListener('keyup', function(e){
+                document.getElementById('content-html').innerHTML = converter.makeHtml(this.value);
+                description.value = summarize(this.value).summary;
+            })
+            
+            title.addEventListener('keyup', function(){
+                titleHtml.textContent = this.value;
+            })
+
+            function openFile(){
+                activeText = JSON.parse(this.response)
+                parsed = parsing(activeText)
+            }   
+
+            function parsing(text){
+                const part = text.split('---\n')
+                title.value = ''
+                tags.value = '';
+                description.value = '';
+                categories.value = '';
+
+                if(!part[1]) {
+                    content.value = part[0]? part[0] : '';
+                    document.getElementById('content-html').innerHTML = converter.makeHtml(content.value);
+                    titleHtml.textContent = '';
+                    authorHtml.textContent = '';
+                    return;
+                }
+
+                if(part[2]){
+                    content.value = part[2];
+                    document.getElementById('content-html').innerHTML = converter.makeHtml(part[2]);
+                }
+
+                const titleTxt = part[1].match(/title: (.*?)\n/)
+                if(titleTxt){
+                    titleHtml.textContent = titleTxt[1].replace(/#/g,'');
+                    title.value = titleHtml.textContent;
+                    part[1] = part[1].replace(titleTxt[0],'')
+                }
+                
+                const author = part[1].match(/author: (.*?)\n/)
+                if(author){
+                    authorHtml.textContent = author[1].replace(/#/g,'');
+                    part[1] = part[1].replace(author[0],'')
+                }
+                
+                const email = part[1].match(/email: (.*?)\n/)
+                if(email){
+                    part[1] = part[1].replace(email[0],'')
+                }
+
+                const descriptionTxt = part[1].match(/description: (.*?)\n/)
+                if(descriptionTxt){
+                    part[1] = part[1].replace(descriptionTxt[0],'');
+                    description.value = descriptionTxt[1]
+                }
+
+                const tagsTxt = part[1].match(/tags: (.*?)\n/)
+                if(tagsTxt){
+                    part[1] = part[1].replace(tagsTxt[0],'');
+                    tagsTxt[1] = tagsTxt[1].replace(/[\[\]\"]/g,'').replace(/,/g,'; ')
+                    tags.value = tagsTxt[1];
+                }
+
+                const categoriesTxt = part[1].match(/categories: (.*?)\n/)
+                if(categoriesTxt){
+                    part[1] = part[1].replace(categoriesTxt[0],'');
+                    categoriesTxt[1] = categoriesTxt[1].replace(/[\[\]\"]/g,'').replace(/,/g,'; ').replace(/<!-more>/,'')
+                    categories.value = categoriesTxt[1];
+                }
+
+                const draft = part[1].match(/draft: (.*?)\n/)
+                if(draft){
+                    part[1] = part[1].replace(draft[0],'');
+                }
+
+            }
+
+            function summarize(text){
+                var stemmed = [];
+                var stemmer = new Stemmer();
+                var tokenizer = new Tokenizer();
+                var words = tokenizer.tokenize(text)
+                const limit = 3;
+                for(word of words){
+                    if(stopWords.indexOf(word)<0){
+                        if(stopWords.indexOf(stemmer.stem(word))<0){
+                            stemmed.push(stemmer.stem(word))
+                        }            
+                    }
+                }
+
+                var cosine = new Cosine()
+                var counter = cosine.wordCountMap(stemmed)
+                sorted_counter = Object.entries(counter).sort((a, b) => b[1] - a[1]);
+                var words = sorted_counter.map(x => x[0])
+                keywords = []
+                weight = []
+                words.forEach(function(word, i){
+                    if(keywords.length < limit) {
+                        keywords.push(word);
+                        weight.push(sorted_counter[i][1])
+                    }
+                }) 
+                var summary = summarizer(text, keywords, weight, limit).join(' ').replace(/[^0-9a-z\s\.\,\?\!\-\_]/gi, '')+'.'
+                return {summary: summary, keyword: keywords.join('; ')}
+            }
+
+            function summarizer(txt, keywords, weight, limit){
+                
+                var txt = txt.replace(/\./g,'.|').replace(/\?/g,'?|').replace(/\!/g,'!|')
+                var sentences = txt.split('|') 
+                var weightSentences = {}
+                var stemmer = new Stemmer();
+                var tokenizer = new Tokenizer();
+                sentences.forEach(function(sentence){
+                    var words = tokenizer.tokenize(sentence)
+                    weightSentences[sentence] = 0;
+                    for(word of words){
+                        if(stopWords.indexOf(word)<0){
+                            var index = keywords.indexOf(stemmer.stem(word));
+                            if(index>=0){
+                                weightSentences[sentence] += weight[index] 
+                            }
+                        }
+                    }    
+                })
+                
+                sorted_counter = Object.entries(weightSentences).sort((a, b) => b[1] - a[1]);
+                var sentences = sorted_counter.map(x => x[0])
+                var selected = [];
+
+                for(sentence in weightSentences){
+                    if(sentences.indexOf(sentence)<limit){
+                        selected.push(sentence)
+                }
+                }
+                return selected;     
+            }
+
+            function insert(main_string, ins_string, pos) {
+                if(typeof(pos) == "undefined") {
+                    pos = 0;
+                }
+                if(typeof(ins_string) == "undefined") {
+                    ins_string = '';
+                }
+                return main_string.slice(0, pos) + ins_string + main_string.slice(pos);
+            }
+
+            function save(draft){
+                const titleTxt = title.value ? title.value : activeFile.replace('.md','');
+                title.value = titleTxt;
+                const bodyTxt = content.value;
+                const summarized = summarize(bodyTxt);
+                const slugTxt = titleTxt ? titleTxt.replace(/[^a-z0-9]|\s+|\r?\n|\r/gmi, "-") : 'notitle';
+                const tagsTxt = tags.value ? tags.value.split(';') : summarized.keyword.split(';') 
+                tags.value = tagsTxt.join('; ');
+                const categoriesTxt = categories.value ? categories.value.split(';') : [''];
+                if(bodyTxt.indexOf('<!--more-->')<=0){
+                    bodyTxt = insert(bodyTxt, '<!--more-->', 100)
+                }
+                var article = [
+                    "---",
+                    'author: #author#',
+                    'title: '+titleTxt,
+                    'email: #email#',
+                    'description: '+(description.value ? description.value : summarized.summary),
+                    'draft: '+draft,
+                    'categories: ["'+categoriesTxt.join('","')+'"]',
+                    'tags: ["'+tagsTxt.join('","')+'"]',
+                    '---',
+                    bodyTxt
+                ] 
+
+                ajax('post', 'article', {
+                    name: activeFile.replace('.md',''),
+                    content: article.join("\n") 
+                }, resultPost)
+            }
+
+            function resultPost(){
+                console.log(this.response)
+            }
+
+            browse();
+        </script>        
+    </body>
+</html>

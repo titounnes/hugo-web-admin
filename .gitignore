@@ -3,10 +3,11 @@
 /api/go-sum
 /api/go.mod
 /api/run
-/go-web/tmp/
-/go-web/gin-bin
-/go-web/go.mod
-/go-web/go.sum
-/go-web/run
-/go-web/yser/yaml
+/web-admin/tmp/
+/web-admin/gin-bin
+/web-admin/go.mod
+/web-admin/go.sum
+/web-admin/run
+/web-admin/user/yaml
 
+config.py

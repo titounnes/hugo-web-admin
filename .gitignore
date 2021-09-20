@@ -1,5 +1,6 @@
 /api/tmp/
 /api/gin-bin
+/api/go-sum
 /api/go.mod
 /api/run
 /go-web/tmp/

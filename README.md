@@ -26,3 +26,7 @@ Hugo-web-admin is an admin panel for managing Hugo web which is Go-Lang based st
 
 ![prev](https://github.com/titounnes/hugo-web-admin/blob/main/static/images/preview.png)
 
+## Credit
+- [showdown](http://showdownjs.com/): A Markdown to HTML bidirectional converter written in Javascript
+- [Bootsrap](https://getbootstrap.com/): Build fast, responsive sites with Bootstrap
+- [Fontawesome](https://fontawesome.com/): Get vector icons and social logos on your website with Font Awesome, the web's most popular icon set and toolkit.

@@ -20,6 +20,20 @@
             integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
         <style>
+            blockquote{
+                padding-top: 10px;
+                padding-bottom: 10px;
+                text-indent:40px;
+                background-color: rgb(15, 3, 3);
+                color: steelblue;
+                font-style: italic;
+            }
+            blockquote p{
+                padding-top: 0;
+                padding-bottom: 0;
+                margin-top: 0;
+                margin-bottom: 0;
+            }
             .placeholder{
                 color: darkgray;
                 font-style: italic;
@@ -35,6 +49,7 @@
             #mid-container{
                 height:calc(100vh - 180px);
             }
+        
             #top-container{
                 height:100px;
             }
@@ -61,12 +76,16 @@
             .btn{
                 margin-top:10px;
             }
-            #content-html h1, #content-html h2, #content-html h2, #content-html h4, #content-html h5, #content-html p, #content-html li {
+            #content-html{
+                word-wrap: break-word;
+                padding-right: 10px;
+            }
+            #content-html h1, #content-html h2, #content-html h3, #content-html h4, #content-html h5, #content-html p, #content-html li {
                 font-size:16px;
             }
         </style>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.8.0/showdown.min.js"></script>
-        <script src="/script.js"></script>
+        <script src="/js/script.js"></script>
+        <script src="/js/markdownify.js"></script>
     </head>
     <body>
         <div class="container-fluid" id="top-container">
@@ -117,7 +136,7 @@
             <p id="alert" class="text-center"></p>
         </div>        
         <script>
-            var activeFile, filepicker, activeText, autoDescription, autoTag, createdAt, converter  = new showdown.Converter();
+            var activeFile, filepicker, activeText, autoDescription, autoTag, createdAt, converter  = new markdown();
                     
             const title = document.getElementById('title')
             const description = document.getElementById('description')

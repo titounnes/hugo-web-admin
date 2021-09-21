@@ -11,7 +11,7 @@ API_PID=$!
 cd ..
 # echo  $!
 # echo $MAIN_PID
-while inotifywait -e modify web-admin/* e-modify api/* ; do
+while inotifywait -e modify web-admin/* -e modify api/* ; do
     kill $WEB_PID
     kill $API_PID
 

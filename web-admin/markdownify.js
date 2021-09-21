@@ -2,81 +2,110 @@ class markdown{
     constructor(){
         this.styles = {
             boldItalic: {
-                patt: '\\*\\*\\*(.*)\\*\\*\\*',
-                templ : '<b><i>#part1#</i></b>',
+                patt: '\\*{3}',
+                tag : '<b><i>',
             },
             bold: {
-                patt: '\\*\\*(.*)\\*\\*',
-                templ : '<b>#part1#</b>',
+                patt: '\\*{2}',
+                tag : '<b',
             },
             italic: {
-                patt: '\\*(.*)\\*',
-                templ : '<i>#part1#</i>',
+                patt: '\\*',
+                tag : '<i>',
             },
             underline: {
-                patt: '__(.*)__',
-                templ : '<u>#part1#</u>',
+                patt: '\\_{2}',
+                tag : '<u>',
             },
             strike: {
-                patt: '~~(.*)~~',
-                templ : '<strike>#part1#</strike>',
+                patt: '\\~{2}',
+                tag:'<strike>',
             },
             subscript: {
-                patt: '_(.*)_',
-                templ : '<sub>#part1#</sub>',
+                patt: '\\_',
+                tag : '<sub>',
             },
             subperscript: {
-                patt: '\\^(.*)\\^',
-                templ : '<sup>#part1#</sup>',
+                patt: '\\^',
+                tag : '<sup>',
             },
             blockquote: {
-                patt: '\\`\\`\\`(.*)\\`\\`\\`',
-                templ : '<blockquote>#part1#</blockquote>',
+                patt: '\\`{3}',
+                tag : '<blockquote>',
             },
             image: {
                 patt: '\\!\\[(.*)\\]\\((.*)\\)',
-                templ: '<img src="#part2#" alt="#part1#" style="#part3#" />',
+                tpl: '<img src="#part2#" alt="#part1#" style="#part3#" />&nbsp;',
             },
             anchor: {
                 patt: '\\[(.*)\\]\\((.*)\\)',
-                templ: '<a href="#part2#" target="_blank">#part1#</a>',
+                tpl: '<a href="#part2#" target="_blank">#part1#</a>',
             },
-            // h1: {
-            //     patt: '# (.*)<br\\/>',
-            //     templ: '<h1>#part1#</h1><br/>',
-            // },
-            // h2: {
-            //     patt: '## (.*)<br\\/>',
-            //     templ: '<h2>#part1#</h2><br/>',
-            // },
-            // h3: {
-            //     patt: '### (.*)<',
-            //     templ: '<h3>#part1#</h3><',
-            // },
-            // h4: {
-            //     patt: '## (.*)<',
-            //     templ: '<h4>#part1#</h4><',
-            // },
-            // h5: {
-            //     patt: '## (.*)<',
-            //     templ: '<h5>#part1#</h5><',
-            // },
+            h5: {
+                patt: '\\#{5} ([^<]+)',
+                tpl: '<h5>#part1#</h5>',
+                open: true,
+            },
+            h4: {
+                patt: '\\#{4} ([^<]+)',
+                tpl: '<h4>#part1#</h4><',
+                open: true,
+            },
+            h3: {
+                patt: '\\#{3} ([^<]+)',
+                tpl: '<h3>#part1#</h3>',
+                open: true,
+            },
+            h2: {
+                patt: '\\#{2} ([^<]+)',
+                tag: '<h2>',
+                open: true,
+            },
+            h1: {
+                patt: '\\#{1} ([^<]+)',
+                tag: '<h1>',
+                open: true,
+            },
         }    
     }
     makeHtml(text){
-        text = text.replace(/\n/g,'<br/>');
+        text = text
+            .replace(/\n/g,' <br>')
+            .replace(/\s+/,' ')
+            .replace(/\-{3}/g, '<hr/>');
+        var pairs;
         for(var i in this.styles){
-            var pattern = new RegExp(this.styles[i].patt);
+            var pattern = new RegExp(this.styles[i].patt, 'ig');
             var fragments = text.match(pattern);
             if(fragments){
-                for(var j = 0; j<fragments.length; j++){
-                    this.styles[i].templ = this.styles[i].templ.replace('#part'+(j)+'#', fragments[j])
+                if(this.styles[i].tag){
+                    if(this.styles[i].open){
+                        for(var j=0; j< fragments.length; j++){
+                            const repl = fragments[j].replace(new RegExp(this.styles[i].patt.split(' ')[0]+' '), this.styles[i].tag).trim()+this.styles[i].tag.replace('<','</')
+                            console.log(repl)
+                            text = text.replace(fragments[j], repl)
+                        }
+                    }else{
+                        pairs = Math.floor(fragments.length/2);
+                        if(pairs>0){
+                            for(var j=0; j< pairs; j++){
+                                text = text.replace(new RegExp(this.styles[i].patt), this.styles[i].tag)
+                                text = text.replace(new RegExp(this.styles[i].patt), this.styles[i].tag.replace(/</g,'</'))
+                            }
+                        }
+                    }
+                }else{
+                    for(var j = 0; j<fragments.length; j++){
+                        const part = fragments[j].replace('!','').replace('[','').trim(')').split('](');
+                        const subpart = part[0].split('|')
+                        const repl = this.styles[i].tpl.replace('#part1#', subpart[0]).replace('#part2#',part[1]).replace('#part3#', subpart[1]??'');
+                        text = text.replace(fragments[j], repl);
+                    }
                 }
-                text = text.replace(fragments[0], this.styles[i].templ);
             }
         }
                 
-        var lines = text.split('<br/>')
+        var lines = text.split('<br>')
         var pre, opt = [], code = false;
         for(var i in lines){
             pre = lines[i].split(' ');
@@ -89,26 +118,15 @@ class markdown{
                 lines[i] = '</ul>'+lines[i];
             }
             switch(pre[0]){
-                case '#' : lines[i] = '<h1>'+lines[i].replace('# ','')+'</h1>'; break;
-                case '##' : lines[i] = '<h2>'+lines[i].replace('## ','')+'</h2>'; break;
-                case '###' : lines[i] = '<h3>'+lines[i].replace('### ','')+'</h3>'; break;
-                case '####' : lines[i] = '<h4>'+lines[i].replace('#### ','')+'</h4>'; break;
-                case '#####' : lines[i] = '<h5>'+lines[i].replace('##### ','')+'</h5>'; break;
                 case '-' : lines[i] = '<li>'+lines[i].replace('- ','')+'</li>';
                     opt[i] = true;
                     if(opt[i-1]==false) lines[i] = '<ul>'+lines[i];
                     break;
-                case '---' :
-                    lines[i] = lines[i].replace('---', '<hr/>');
-                    break;
                 default :
-                    if(code){
-                        lines[i] = '&nbsp;&nbsp;&nbsp;&nbsp;'+lines[i];    
-                    } 
                     lines[i] ='<p>'+lines[i]+'</p>'; break;
             }
         }
         text = lines.join('');
-        return text;
+        return text.replace(/\|/g,'');
     }
 }

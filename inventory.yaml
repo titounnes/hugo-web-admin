@@ -1,0 +1,37 @@
+# sudo ansible-playbook inventory.yml
+
+- hosts: local
+  tasks:
+    # Instalasi nginx 
+    - name: Ansible dnf install packages nginx
+      become: true
+      become_user: tito # user SSH
+      dnf:
+        name: nginx # nama aplikasi yang akan diisntall
+        state: latest # versi aplikasi
+    
+    # Membuat direktory untuk root
+    # - name: "create www directory"
+    #   file:
+    #     path: /var/www/eProject/ # Folder kita
+    #     state: directory # jenis 
+    #     mode: '0775' # mode
+    #     owner: root # user pemilik (ownership, bisa disesuailan kebutuhan)
+    #     group: root  # Group user
+
+    # # menyain file configuarsi untuk virtual host
+    # - name: copy nginx site.conf 
+    #   template:
+    #     src: site.conf.j2 # path template konfigurasi virtual host
+    #     dest: /etc/nginx/conf.d/e-project.conf # tujuan penyimpanan
+    #     owner: root # user ssh
+    #     group: root # Group 
+    #     mode: '0644' # mode file
+    #   notify: restart nginx # akan memicu perintah  systemctl restart nginx secara otomatis setelah berhasil menyalin file
+
+  # handlers:
+  #   - name: restart nginx
+  #     service:
+  #       name: nginx
+  #       state: restarted
+

@@ -20,19 +20,42 @@
             integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
         <style>
-            #title, #button-group{
+            .placeholder{
+                color: darkgray;
+                font-style: italic;
+            }
+            .alert{
+                position: fixed;
+                bottom:5px;
+                width:80vw;
+                margin-left:10vw;
+                padding: 10px 0 0 0;
+                z-index: 999;
+            }
+            #mid-container{
+                height:calc(100vh - 180px);
+            }
+            #top-container{
+                height:100px;
+            }
+            #bottom-container{
+                height:80px;
+                bottom:0px;
+                position:fixed;
+                padding-top: 40px;
+            }
+            #button-group{
                 height:10vh;
             }
-            #preview, #body, article{
-                height: 40vh;
-                max-height: 40vh;
-                width:100%;
+            #body{
+                min-height: 200px;
+                height: 300px;
             }
-            #preview{
-                overflow-y: auto;
-            }
-            #content{
-                height: 80%;
+            #preview{  
+                padding-top: 30px;
+                padding-bottom: 30px;
+                min-height: 500px;
+                max-height: 70vh;
                 overflow-y: auto;
             }
             .btn{
@@ -46,48 +69,67 @@
         <script src="/script.js"></script>
     </head>
     <body>
-        <div class="container">
+        <div class="container-fluid" id="top-container">
             <h3 class="text-center">{{.Title}}</h3>
-            <h4 class="text-center">Simple and Usefull</h4>
+            <h4 class="text-center">Simple and Useful</h4>
         </div>
-        <div class="container">
+        <div class="container-fluid" id="mid-container">
             <div class="row">
-                <div class="col-sm-9">
+                <div class="col-sm">
+                    <div id="editor">
+                        <input type="text" id="title" class="form-control" placeholder="title">&nbsp;
+                        <div class="input-group mb-3">
+                            <div class="input-group-text">
+                                <input class="form-check-input mb-0" type="checkbox" id="auto-desc" style="margin-left:-5px" value="" aria-label="Checkbox for following text input">
+                            </div>
+                            <input type="text" id="description" class="form-control" aria-label="Text input with checkbox" placeholder="descriptiom">
+                        </div>
+                        <textarea id="body" class="form-control" placeholder="content"></textarea>&nbsp;
+                        <div class="input-group mb-3">
+                            <div class="input-group-text">
+                                <input class="form-check-input mb-0" type="checkbox" id="auto-tag" style="margin-left:-5px" value="" aria-label="Checkbox for following text input">
+                            </div>
+                            <input type="text" id="tags" class="form-control" placeholder="Tags, separate by semocolon">&nbsp;
+                        </div>
+                        <input type="text" id="categories" class="form-control" placeholder="categories, separate by semicolon">&nbsp;
+                        <button class="btn btn-primary" onclick="save(true)"><i class="fa fa-save"></i> </i>Save as Draft</button>
+                        <button class="btn btn-primary" onclick="save(false)"><i class="fa fa-save"></i> </i>Save and Publish</button>
+                    </div>
+                </div>
+                <div class="col-sm">
+                    <div id="files">
+                        Hasil di sini    
+                    </div>
                     <div id="preview">
                         <h3 id="title-html" class="text-center"></h3>
                         <h4 id="author-html" class="text-center"></h4>
-                        <div id="content-html" style="text-align:justify"></div>
-                    </div>
-                </div>
-                <div class="col-sm-3">
-                    <div class="col-sm">
-                        <div id="files">
-                            Hasil di sini    
-                        </div>
+                        <div id="content-html" style="text-align:justify"><p class="text-center placeholder">Preview in here</p></div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-9">
-                    <div id="editor">
-                        <input type="text" id="title" class="form-control" placeholder="title">&nbsp;
-                        <input type="text" id="description" class="form-control" placeholder="descriptiom" readOnly>&nbsp;
-                        <textarea id="body" class="form-control" placeholder="content"></textarea>
-                    </div>
-                </div>
-                <div class="col-sm-3">
-                    <input type="text" id="tags" class="form-control" placeholder="Tags, separate by semocolon">&nbsp;
-                    <input type="text" id="categories" class="form-control" placeholder="categories">&nbsp;
-                    <button class="btn btn-primary" onclick="save(true)"><i class="fa fa-save"></i> </i>Save as Draft</button>
-                    <button class="btn btn-primary" onclick="save(false)"><i class="fa fa-save"></i> </i>Save and Publish</button>
-                </div>
-            </div>
+        <div class="container-fluid" id="bottom-container">
+            <footer class="footer">
+                <p class="text-center">Developed by <a href="e-project-tech.com" class="">eProject</a></p>
+            </footer>
         </div>
+        <div class="alert alert-primary" role="alert" hidden>
+            <p id="alert" class="text-center"></p>
+        </div>        
         <script>
-            var activeFile, activeText, converter = new showdown.Converter();
+            var activeFile, filepicker, activeText, autoDescription, autoTag, createdAt, converter  = new showdown.Converter();
                     
+            const title = document.getElementById('title')
+            const description = document.getElementById('description')
+            const content = document.getElementById('body')
+            const tags = document.getElementById('tags')
+            const categories = document.getElementById('categories')
+            
+            const titleHtml = document.getElementById('title-html')
+            const authorHtml = document.getElementById('author-html')
+            const contentHTML = document.getElementById('content-html')
+            const autoDesc = document.getElementById('auto-desc');
+            const autoTags = document.getElementById('auto-tag');
 
             function ajax(method, controller, data, callback){
                 const xmlhttp = new XMLHttpRequest();
@@ -104,29 +146,33 @@
             }
 
             function showFile(){
-                localStorage['files'] = this.response;
                 const fileContainer = document.getElementById('files')
-                var html = ['Daftar Artikel<ul class="nav nav-link">']
+                var html = ['<select class="form-control" id="choose-file" onchange="chooseFile();"><option value="">Create New</option>']
                 for(var file of JSON.parse(this.response).files){
-                    html.push('<li><a href="#" class="file-anchor" data="'+file+'" onclick="chooseFile(\''+file+'\');" >'+file+'</a></li>')
+                    html.push('<option value="'+file+'">'+file+'</option>')
                 }
-                html.push('</ul>')
+                html.push('</select>')
                 fileContainer.innerHTML = html.join('');
+                filepicker = document.getElementById('choose-file')
             }
 
-            function chooseFile(name){
-                activeFile = name;
+            function chooseFile(){
+                activeFile = filepicker.value;
+                if(activeFile==''){
+                    title.value = '';
+                    description.value = ''
+                    content.value = '';
+                    tags.value = '';
+                    categories.value = '';
+            
+                    titleHtml.textContent = '';
+                    authorHtml.textContent = '';
+                    contentHTML.innerHTML = '<p class="text-center placeholder">Preview in here</p>';
+                }
+                if(!activeFile) return;
                 ajax('get', 'article/'+activeFile.replace('.md',''), {}, openFile)
             }
 
-            const title = document.getElementById('title')
-            const description = document.getElementById('description')
-            const content = document.getElementById('body')
-            const tags = document.getElementById('tags')
-            const categories = document.getElementById('categories')
-            
-            const titleHtml = document.getElementById('title-html')
-            const authorHtml = document.getElementById('author-html')
 
 
             content.addEventListener('keydown', function(e){
@@ -140,18 +186,33 @@
                         break;
                  
                 }
-                // console.log(cursorPosition)
-                // console.log(e.key)
-                // document.getElementById('content-html').innerHTML = converter.makeHtml(this.value);
             })
             
             content.addEventListener('keyup', function(e){
-                document.getElementById('content-html').innerHTML = converter.makeHtml(this.value);
+                contentHTML.innerHTML = converter.makeHtml(this.value);
                 description.value = summarize(this.value).summary;
+                const sumarized = summarize(content.value)
+                if(autoDescription){
+                    description.value = sumarized.summary;
+                }
+                if(autoTag){
+                    tags.value = sumarized.keyword;
+                }
+
             })
             
             title.addEventListener('keyup', function(){
                 titleHtml.textContent = this.value;
+            })
+
+            autoDesc.addEventListener('click', function(){
+                autoDescription = this.checked; 
+                description.readOnly = this.checked;
+            })
+
+            autoTags.addEventListener('click', function(){
+                autoTag = this.checked; 
+                tags.readOnly = this.checked;
             })
 
             function openFile(){
@@ -169,14 +230,33 @@
                 if(!part[1]) {
                     content.value = part[0]? part[0] : '';
                     document.getElementById('content-html').innerHTML = converter.makeHtml(content.value);
+                    const sumarized = summarize(content.value)
+                    if(autoDescription){
+                        description.value = sumarized.summary;
+                    }
+                    if(autoTag){
+                        tags.value = sumarized.keyword;
+                    }
                     titleHtml.textContent = '';
                     authorHtml.textContent = '';
+                    contentHTML.innerHTML = '<p class="text-center placeholder">Preview in here</p>';
                     return;
                 }
 
                 if(part[2]){
                     content.value = part[2];
-                    document.getElementById('content-html').innerHTML = converter.makeHtml(part[2]);
+                    contentHTML.innerHTML = converter.makeHtml(part[2]);
+                    const sumarized = summarize(content.value)
+                    if(autoDescription){
+                        description.value = sumarized.summary;
+                    }
+                    if(autoTag){
+                        tags.value = sumarized.keyword;
+                    }
+                }else{
+                    contentHTML.innerHTML = '<p class="text-center placeholder">Preview in here</p>';
+                    content.value = '';
+                    description.value = '';
                 }
 
                 const titleTxt = part[1].match(/title: (.*?)\n/)
@@ -195,6 +275,12 @@
                 const email = part[1].match(/email: (.*?)\n/)
                 if(email){
                     part[1] = part[1].replace(email[0],'')
+                }
+
+                const date = part[1].match(/date: (.*?)\n/)
+                if(date){
+                    part[1] = part[1].replace(date[0],'');
+                    createdAt = date[1]
                 }
 
                 const descriptionTxt = part[1].match(/description: (.*?)\n/)
@@ -281,7 +367,7 @@
                 for(sentence in weightSentences){
                     if(sentences.indexOf(sentence)<limit){
                         selected.push(sentence)
-                }
+                    }
                 }
                 return selected;     
             }
@@ -297,15 +383,16 @@
             }
 
             function save(draft){
-                const titleTxt = title.value ? title.value : activeFile.replace('.md','');
+                const titleTxt = title.value ? title.value : (activeFile ? activeFile.replace('.md',''): '');
+                const nameFile = activeFile ? activeFile.replace('.md',''): (title.value ? title.value : '');
                 title.value = titleTxt;
                 const bodyTxt = content.value;
                 const summarized = summarize(bodyTxt);
                 const slugTxt = titleTxt ? titleTxt.replace(/[^a-z0-9]|\s+|\r?\n|\r/gmi, "-") : 'notitle';
                 const tagsTxt = tags.value ? tags.value.split(';') : summarized.keyword.split(';') 
-                tags.value = tagsTxt.join('; ');
+                tags.value = tagsTxt.join('; ').replace(/\s+/g, ' ');
                 const categoriesTxt = categories.value ? categories.value.split(';') : [''];
-                if(bodyTxt.indexOf('<!--more-->')<=0){
+                if(bodyTxt && bodyTxt.indexOf('<!--more-->')<=0){
                     bodyTxt = insert(bodyTxt, '<!--more-->', 100)
                 }
                 var article = [
@@ -313,22 +400,39 @@
                     'author: #author#',
                     'title: '+titleTxt,
                     'email: #email#',
+                    'date: '+(createdAt ? createdAt : new Date()), 
                     'description: '+(description.value ? description.value : summarized.summary),
                     'draft: '+draft,
-                    'categories: ["'+categoriesTxt.join('","')+'"]',
-                    'tags: ["'+tagsTxt.join('","')+'"]',
+                    'categories: ["'+categoriesTxt.join('","').replace(/\s+/g,'')+'"]',
+                    'tags: ["'+tagsTxt.join('","').replace(/\s+/g,'')+'"]',
                     '---',
                     bodyTxt
                 ] 
-
+                if(!titleTxt){
+                    return showAlert('Article has no title.')
+                }
                 ajax('post', 'article', {
-                    name: activeFile.replace('.md',''),
+                    name: nameFile,
+                    slug: slugTxt,
                     content: article.join("\n") 
                 }, resultPost)
             }
 
+            function showAlert(message){
+                document.getElementsByClassName('alert')[0].hidden = false;
+                document.getElementById('alert').innerHTML = message;
+                setTimeout(function(){
+                    document.getElementsByClassName('alert')[0].hidden = true;    
+                }, 2000)
+            }
             function resultPost(){
-                console.log(this.response)
+                const newName = JSON.parse(this.response); 
+                for(var opt of filepicker){
+                    if(opt.value==filepicker.value){
+                        opt.value = newName+'.md';
+                        opt.textContent = opt.value;  
+                    }
+                }
             }
 
             browse();

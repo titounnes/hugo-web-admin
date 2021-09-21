@@ -11,10 +11,12 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/gosimple/slug"
 )
 
 const path = "../content/post/"
+const ext = ".md"
+
+var name = ""
 
 func main() {
 
@@ -39,37 +41,47 @@ func main() {
 }
 
 type DataJSON struct {
-	Name        string `json:"name"`
-	Title       string `json:"title"`
-	Tags        string `json:"tags"`
-	Categories  string `json:"categories"`
-	Content     string `json:"content"`
-	Author      string `json:"author"`
-	Description string `json:"description"`
-	Date        string `json:"date"`
+	Name    string `json:"name"`
+	Slug    string `json:"slug"`
+	Content string `json:"content"`
+	Author  string `json:"author"`
+	Date    string `json:"date"`
+}
+
+func rename(oldName string, newName string) {
+	os.Rename(path+oldName+ext, path+newName+ext)
+}
+
+func saveFile(name string, content []byte) error {
+	err := ioutil.WriteFile(path+name+ext, content, 0755)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func postArticle(c *gin.Context) {
 	var dataJSON DataJSON
 	err := c.BindJSON(&dataJSON)
 	if err != nil {
-		c.IndentedJSON(http.StatusNoContent, err)
+		c.IndentedJSON(http.StatusNoContent, dataJSON.Slug)
 	} else {
-		content := []byte(dataJSON.Content)
-		fullpath := path + dataJSON.Name + ".md"
-		err := ioutil.WriteFile(fullpath, content, 0755)
-		if err != nil {
-			c.IndentedJSON(http.StatusUnprocessableEntity, err)
-		} else {
-			if dataJSON.Title != "" {
-				slugTitle := slug.Make(dataJSON.Title)
-				if slugTitle != dataJSON.Name {
-					os.Rename(fullpath, path+slugTitle+".md")
-				}
-				c.IndentedJSON(http.StatusOK, slugTitle)
-			} else {
-				c.IndentedJSON(http.StatusOK, nil)
+		if dataJSON.Name != "" {
+			name = dataJSON.Name
+			if dataJSON.Name != dataJSON.Slug {
+				rename(dataJSON.Name, dataJSON.Slug)
+				name = dataJSON.Slug
 			}
+		} else {
+			name = dataJSON.Slug
+		}
+
+		content := []byte(dataJSON.Content)
+		err := saveFile(name, content)
+		if err != nil {
+			c.IndentedJSON(http.StatusOK, dataJSON.Slug)
+		} else {
+			c.IndentedJSON(http.StatusOK, dataJSON.Slug)
 		}
 	}
 }

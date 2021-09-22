@@ -25,7 +25,7 @@
                 padding-bottom: 10px;
                 text-indent:40px;
                 background-color: rgb(15, 3, 3);
-                color: steelblue;
+                color: rgb(170, 200, 224);
                 font-style: italic;
             }
             blockquote p{
@@ -195,15 +195,19 @@
 
 
             content.addEventListener('keydown', function(e){
+                console.log(e)
                 var cursorPosition = this.selectionStart;
                 switch(e.key){
                     case 'Tab' :
                         e.preventDefault(); 
-                        this.value = insert(this.value, '     ', cursorPosition);
+                        this.value = insert(this.value, '    \t', cursorPosition);
                         this.selectionEnd = cursorPosition+4;
                         this.focus();
                         break;
-                 
+                    case 's' : 
+                        e.preventDefault();
+                        console.log(e.key)
+                        break;
                 }
             })
             
@@ -445,7 +449,7 @@
                 }, 2000)
             }
             function resultPost(){
-                const newName = JSON.parse(this.response); 
+                const newName = JSON.parse(this.response);
                 for(var opt of filepicker){
                     if(opt.value==filepicker.value){
                         opt.value = newName+'.md';

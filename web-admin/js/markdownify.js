@@ -82,7 +82,6 @@ class markdown{
                     if(this.styles[i].open){
                         for(var j=0; j< fragments.length; j++){
                             const repl = fragments[j].replace(new RegExp(this.styles[i].patt.split(' ')[0]+' '), this.styles[i].tag).trim()+this.styles[i].tag.replace('<','</')
-                            console.log(repl)
                             text = text.replace(fragments[j], repl)
                         }
                     }else{
